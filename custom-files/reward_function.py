@@ -1,33 +1,30 @@
-def reward_function(params):
-    '''
-    Example of penalize steering, which helps mitigate zig-zag behaviors
-    '''
-    
-    # Read input parameters
-    distance_from_center = params['distance_from_center']
-    track_width = params['track_width']
-    steering = abs(params['steering_angle']) # Only need the absolute steering angle
+import math
+def reward_function(params) :
+    punishment = 1e-3 
+    reward = punishment 
+    x = params ['x'] 
+    y = params ['y'] 
+    speed = params ['speed'] 
+    heading = params ['heading'] 
+    waypoints = params ['waypoints'] 
+    track_width = params ['track_width'] 
+    is_offtrack = params ['is_offtrack']  
+    closest_waypoints = params ['closest_waypoints'] 
+    all_wheels_on_track = params ['all_wheels_on_track'] 
 
-    # Calculate 3 marks that are farther and father away from the center line
-    marker_1 = 0.1 * track_width
-    marker_2 = 0.25 * track_width
-    marker_3 = 0.5 * track_width
-
-    # Give higher reward if the car is closer to center line and vice versa
-    if distance_from_center <= marker_1:
-        reward = 1
-    elif distance_from_center <= marker_2:
-        reward = 0.5
-    elif distance_from_center <= marker_3:
-        reward = 0.1
+    next_waypoint_index = closest_waypoints [1] 
+    num_steps = 5 
+    future_index = (next_waypoint_index + num_steps) % len(waypoints) 
+    future_waypoint = waypoints[future_index] 
+    future_waypoint_x, future_waypoint_y = future_waypoint
+    expected_heading = math.degrees(math.atan2(future_waypoint_y - y, future_waypoint_x - x)) 
+    heading_diff = abs(expected_heading - heading) 
+    if heading_diff > 180:
+        heading_diff = abs(360 - heading_diff) 
+    if is_offtrack:
+        reward += punishment
     else:
-        reward = 1e-3  # likely crashed/ close to off track
-
-    # Steering penality threshold, change the number based on your action space setting
-    ABS_STEERING_THRESHOLD = 15
-
-    # Penalize reward if the car is steering too much
-    if steering > ABS_STEERING_THRESHOLD:
-        reward *= 0.8
-
+        if all_wheels_on_track and heading_diff <= 15:
+            reward += round((100*speed)/(heading_diff+1))+punishment 
+    
     return float(reward)

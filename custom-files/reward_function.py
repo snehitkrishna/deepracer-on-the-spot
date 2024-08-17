@@ -24,7 +24,7 @@ def reward_function(params) :
     if is_offtrack:
         reward += punishment
     else:
-        if all_wheels_on_track and heading_diff <= 12:
+        if all_wheels_on_track and heading_diff <= 13:
             reward += round((100*speed)/(heading_diff+1))+punishment 
     
     return float(reward)

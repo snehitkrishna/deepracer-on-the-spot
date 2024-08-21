@@ -3,7 +3,7 @@ def reward_function(params):
     track_width = params['track_width']
     distance_from_center = params['distance_from_center']
     abs_steering = abs(params['steering_angle'])
-    ABS_STEERING_THRESHOLD = 13
+    ABS_STEERING_THRESHOLD = 11
 
     # Calculate the distance from the center as a fraction of the track width
     distance_from_center_ratio = distance_from_center / (track_width / 2)

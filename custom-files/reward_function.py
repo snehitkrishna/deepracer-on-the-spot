@@ -1,24 +1,30 @@
-def reward_function(params):
-    # Parameters available for use
-    track_width = params['track_width']
-    distance_from_center = params['distance_from_center']
-    abs_steering = abs(params['steering_angle'])
-    ABS_STEERING_THRESHOLD = 11
+import math
+def reward_function(params) :
+    punishment = 1e-3 
+    reward = punishment 
+    x = params ['x'] 
+    y = params ['y'] 
+    speed = params ['speed'] 
+    heading = params ['heading'] 
+    waypoints = params ['waypoints'] 
+    track_width = params ['track_width'] 
+    is_offtrack = params ['is_offtrack']  
+    closest_waypoints = params ['closest_waypoints'] 
+    all_wheels_on_track = params ['all_wheels_on_track'] 
 
-    # Calculate the distance from the center as a fraction of the track width
-    distance_from_center_ratio = distance_from_center / (track_width / 2)
-
-    # Define the reward, encouraging the car to stay closer to the center
-    if distance_from_center_ratio <= 0.1:
-        reward = 1.0  # Optimal position close to the center
-    elif distance_from_center_ratio <= 0.25:
-        reward = 0.8  # Slightly off-center
-    elif distance_from_center_ratio <= 0.5:
-        reward = 0.5  # Moderately off-center
+    next_waypoint_index = closest_waypoints [1] 
+    num_steps = 5 
+    future_index = (next_waypoint_index + num_steps) % len(waypoints) 
+    future_waypoint = waypoints[future_index] 
+    future_waypoint_x, future_waypoint_y = future_waypoint
+    expected_heading = math.degrees(math.atan2(future_waypoint_y - y, future_waypoint_x - x)) 
+    heading_diff = abs(expected_heading - heading) 
+    if heading_diff > 180:
+        heading_diff = abs(360 - heading_diff) 
+    if is_offtrack:
+        reward += punishment
     else:
-        reward = 0.001  # Close to the edge or off-track
- 
-    if abs_steering > ABS_STEERING_THRESHOLD:
-        reward *= 0.8
-
+        if all_wheels_on_track and heading_diff <= 12:
+            reward += round((100*speed)/(heading_diff+1))+punishment 
+    
     return float(reward)
